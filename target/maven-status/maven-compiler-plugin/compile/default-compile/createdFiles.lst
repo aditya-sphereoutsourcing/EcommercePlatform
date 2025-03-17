@@ -1,0 +1,7 @@
+com/example/ecommerce/model/Product.class
+com/example/ecommerce/config/DataSeeder.class
+com/example/ecommerce/repository/ProductRepository.class
+com/example/ecommerce/model/User.class
+com/example/ecommerce/repository/UserRepository.class
+com/example/ecommerce/controller/AuthController.class
+com/example/ecommerce/service/ProductService.class

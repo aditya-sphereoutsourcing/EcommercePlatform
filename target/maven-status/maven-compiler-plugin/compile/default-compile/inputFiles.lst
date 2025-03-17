@@ -1,0 +1,16 @@
+/home/runner/workspace/src/main/java/com/example/ecommerce/service/ProductService.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/config/DataSeeder.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/repository/UserRepository.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/controller/AuthController.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/service/UserService.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/security/JwtAuthenticationFilter.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/controller/ProductController.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/model/User.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/model/Product.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/repository/ProductRepository.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/security/CustomUserDetailsService.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/dto/LoginRequest.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/dto/SignupRequest.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/security/JwtTokenProvider.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/security/SecurityConfig.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/EcommerceApplication.java

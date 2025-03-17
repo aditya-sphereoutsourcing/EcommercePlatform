@@ -18,8 +18,10 @@ spring:
       path: /h2-console
 
 server:
-  port: 5000
+  port: 8080
   address: 0.0.0.0
+  servlet:
+    context-path: /api
 
 jwt:
   secret: ${JWT_SECRET:your-256-bit-secret-key-here}

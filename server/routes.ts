@@ -3,32 +3,53 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertProductSchema, insertCartItemSchema } from "@shared/schema";
-
-function requireAuth(req: Request, res: Response, next: Function) {
-  if (!req.isAuthenticated()) {
-    console.log("Authentication failed:", {
-      sessionID: req.sessionID,
-      isAuthenticated: req.isAuthenticated(),
-      user: req.user
-    });
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  console.log("Authentication successful:", {
-    sessionID: req.sessionID,
-    user: req.user?.id
-  });
-  next();
-}
-
-function requireAdmin(req: Request, res: Response, next: Function) {
-  if (!req.isAuthenticated() || !req.user.isAdmin) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-  next();
-}
+import { insertProductSchema } from "@shared/schema";
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Proxy all /api requests to Spring Boot except /api/products
+  app.use('/api', createProxyMiddleware({
+    target: 'http://localhost:8080',
+    changeOrigin: true,
+    logLevel: 'debug',
+    pathRewrite: {
+      '^/api': '/api' // keep /api prefix when forwarding to Spring Boot
+    },
+    // Don't proxy /api/products requests
+    filter: (path) => {
+      return !path.startsWith('/api/products');
+    }
+  }));
+
+  // Products endpoint handled by Express
+  app.get("/api/products", async (_req, res) => {
+    const products = await storage.getProducts();
+    res.json(products);
+  });
+
+  app.get("/api/products/:id", async (req, res) => {
+    const product = await storage.getProduct(Number(req.params.id));
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  });
+
+  app.post("/api/products", requireAdmin, async (req, res) => {
+    const product = insertProductSchema.parse(req.body);
+    const created = await storage.createProduct(product);
+    res.status(201).json(created);
+  });
+
+  app.patch("/api/products/:id", requireAdmin, async (req, res) => {
+    const product = await storage.updateProduct(Number(req.params.id), req.body);
+    res.json(product);
+  });
+
+  app.delete("/api/products/:id", requireAdmin, async (req, res) => {
+    await storage.deleteProduct(Number(req.params.id));
+    res.sendStatus(204);
+  });
+
+
   setupAuth(app);
 
   // Seed some demo products
@@ -63,60 +84,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createProduct(product);
       }
     }
-  });
-
-  // Products
-  app.get("/api/products", async (_req, res) => {
-    const products = await storage.getProducts();
-    res.json(products);
-  });
-
-  app.get("/api/products/:id", async (req, res) => {
-    const product = await storage.getProduct(Number(req.params.id));
-    if (!product) return res.status(404).json({ message: "Product not found" });
-    res.json(product);
-  });
-
-  app.post("/api/products", requireAdmin, async (req, res) => {
-    const product = insertProductSchema.parse(req.body);
-    const created = await storage.createProduct(product);
-    res.status(201).json(created);
-  });
-
-  app.patch("/api/products/:id", requireAdmin, async (req, res) => {
-    const product = await storage.updateProduct(Number(req.params.id), req.body);
-    res.json(product);
-  });
-
-  app.delete("/api/products/:id", requireAdmin, async (req, res) => {
-    await storage.deleteProduct(Number(req.params.id));
-    res.sendStatus(204);
-  });
-
-  // Cart
-  app.get("/api/cart", requireAuth, async (req, res) => {
-    console.log("Getting cart for user:", req.user!.id);
-    const items = await storage.getCartItems(req.user!.id);
-    res.json(items);
-  });
-
-  app.post("/api/cart", requireAuth, async (req, res) => {
-    console.log("Adding to cart. User:", req.user!.id, "Body:", req.body);
-    const item = insertCartItemSchema.parse({ ...req.body, userId: req.user!.id });
-    const created = await storage.addToCart(item);
-    res.status(201).json(created);
-  });
-
-  app.patch("/api/cart/:id", requireAuth, async (req, res) => {
-    const schema = z.object({ quantity: z.number().min(1) });
-    const { quantity } = schema.parse(req.body);
-    const updated = await storage.updateCartItem(Number(req.params.id), quantity);
-    res.json(updated);
-  });
-
-  app.delete("/api/cart/:id", requireAuth, async (req, res) => {
-    await storage.removeFromCart(Number(req.params.id));
-    res.sendStatus(204);
   });
 
   // Orders
@@ -156,4 +123,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+function requireAuth(req: Request, res: Response, next: Function) {
+  if (!req.isAuthenticated()) {
+    console.log("Authentication failed:", {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user
+    });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  console.log("Authentication successful:", {
+    sessionID: req.sessionID,
+    user: req.user?.id
+  });
+  next();
+}
+
+function requireAdmin(req: Request, res: Response, next: Function) {
+  if (!req.isAuthenticated() || !req.user.isAdmin) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  next();
 }

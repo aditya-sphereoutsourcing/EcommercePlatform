@@ -22,6 +22,40 @@ function requireAdmin(req: Request, res: Response, next: Function) {
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
+  // Seed some demo products
+  const demoProducts = [
+    {
+      name: "Premium Headphones",
+      description: "High-quality wireless headphones with noise cancellation",
+      price: 199.99,
+      imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+      stock: 50
+    },
+    {
+      name: "Smart Watch",
+      description: "Feature-rich smartwatch with health tracking",
+      price: 299.99,
+      imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+      stock: 30
+    },
+    {
+      name: "Laptop Pro",
+      description: "Powerful laptop for professionals",
+      price: 1299.99,
+      imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853",
+      stock: 20
+    }
+  ];
+
+  // Seed products if none exist
+  storage.getProducts().then(async (products) => {
+    if (products.length === 0) {
+      for (const product of demoProducts) {
+        await storage.createProduct(product);
+      }
+    }
+  });
+
   // Products
   app.get("/api/products", async (_req, res) => {
     const products = await storage.getProducts();
@@ -83,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const products = await storage.getProducts();
     const productMap = new Map(products.map(p => [p.id, p]));
-    
+
     const total = cartItems.reduce((sum, item) => {
       const product = productMap.get(item.productId);
       if (!product) throw new Error(`Product ${item.productId} not found`);

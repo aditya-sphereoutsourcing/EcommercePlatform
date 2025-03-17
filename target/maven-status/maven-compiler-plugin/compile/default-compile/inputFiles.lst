@@ -2,6 +2,7 @@
 /home/runner/workspace/src/main/java/com/example/ecommerce/service/ProductService.java
 /home/runner/workspace/src/main/java/com/example/ecommerce/repository/CartItemRepository.java
 /home/runner/workspace/src/main/java/com/example/ecommerce/config/DataSeeder.java
+/home/runner/workspace/src/main/java/com/example/ecommerce/config/WebConfig.java
 /home/runner/workspace/src/main/java/com/example/ecommerce/repository/UserRepository.java
 /home/runner/workspace/src/main/java/com/example/ecommerce/controller/AuthController.java
 /home/runner/workspace/src/main/java/com/example/ecommerce/service/UserService.java

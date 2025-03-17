@@ -7,8 +7,17 @@ import { insertProductSchema, insertCartItemSchema } from "@shared/schema";
 
 function requireAuth(req: Request, res: Response, next: Function) {
   if (!req.isAuthenticated()) {
+    console.log("Authentication failed:", {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user
+    });
     return res.status(401).json({ message: "Unauthorized" });
   }
+  console.log("Authentication successful:", {
+    sessionID: req.sessionID,
+    user: req.user?.id
+  });
   next();
 }
 
@@ -86,11 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Cart
   app.get("/api/cart", requireAuth, async (req, res) => {
+    console.log("Getting cart for user:", req.user!.id);
     const items = await storage.getCartItems(req.user!.id);
     res.json(items);
   });
 
   app.post("/api/cart", requireAuth, async (req, res) => {
+    console.log("Adding to cart. User:", req.user!.id, "Body:", req.body);
     const item = insertCartItemSchema.parse({ ...req.body, userId: req.user!.id });
     const created = await storage.addToCart(item);
     res.status(201).json(created);
